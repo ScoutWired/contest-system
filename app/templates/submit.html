@@ -8,6 +8,6 @@
 <label for="description">Full description</label><textarea id="description" name="description" rows="8" required>{{ form.description|default('') }}</textarea>
 <label for="links">Supporting links (one per line)</label><textarea id="links" name="links" rows="3">{{ form.links|default('') }}</textarea>
 <label for="proposed_options">Proposed voting options (one per line, optional)</label><textarea id="proposed_options" name="proposed_options" rows="3">{{ form.proposed_options|default('') }}</textarea>
-<label for="attachment">Attachment (optional: pdf/png/jpg/txt/md/csv, max {{ max_mb }}MB)</label><input id="attachment" name="attachment" type="file">
+{% if attachments_enabled %}<label for="attachment">Attachment (optional: pdf/png/jpg/txt/md/csv, max {{ max_mb }}MB)</label><input id="attachment" name="attachment" type="file">{% else %}<p><small>File attachments are disabled on this deployment.</small></p>{% endif %}
 <button class="btn primary" type="submit">Submit for review</button></form></div>
 {% endblock %}

@@ -16,6 +16,8 @@ def _getbool(name: str, default: bool) -> bool:
         return default
     return v.strip().lower() in ("1", "true", "yes", "on")
 
+ON_VERCEL = bool(os.environ.get("VERCEL"))
+
 class Settings:
     APP_NAME = _get("APP_NAME", "ScoutWired Portal")
     APP_URL = _get("APP_URL", "http://localhost:8000").rstrip("/")
@@ -36,7 +38,10 @@ class Settings:
     DISCORD_WEBHOOK_MODERATION = _get("DISCORD_WEBHOOK_MODERATION", "")
     DISCORD_WEBHOOK_PUBLIC = _get("DISCORD_WEBHOOK_PUBLIC", "")
     DISCORD_WEBHOOK_SECURITY = _get("DISCORD_WEBHOOK_SECURITY", "")
-    UPLOAD_DIR = _get("UPLOAD_DIR", "./data/uploads")
+    UPLOAD_DIR = _get("UPLOAD_DIR", "/tmp/uploads" if ON_VERCEL else "./data/uploads")
+    # Local attachment storage is ephemeral on Vercel (read-only FS except /tmp).
+    # Set ATTACHMENTS_ENABLED=false (the Vercel default) unless you accept that.
+    ATTACHMENTS_ENABLED = _getbool("ATTACHMENTS_ENABLED", not ON_VERCEL)
     MAX_UPLOAD_MB = _getint("MAX_UPLOAD_MB", 10)
     ALLOWED_UPLOAD_EXTS = _get("ALLOWED_UPLOAD_EXTS", ".pdf,.png,.jpg,.jpeg,.txt,.md,.csv")
     ENV = _get("ENV", "dev")

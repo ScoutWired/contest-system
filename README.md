@@ -70,6 +70,20 @@ PostgreSQL migration path: set `DATABASE_URL=postgresql+psycopg2://...`, install
 
 Bind is localhost-only by default (`127.0.0.1:8000`). Put Caddy/Nginx in front with TLS, or `cloudflared tunnel --url http://127.0.0.1:8000`. Set `APP_URL` to the canonical public URL and `SECURE_COOKIES=true`.
 
+## Deploy on Vercel (serverless + Neon Postgres)
+
+SQLite and local uploads cannot work on Vercel (read-only filesystem, no persistence), so Vercel deploys use Postgres:
+
+1. Create a Postgres DB via the Vercel Marketplace (Neon): Storage → add integration → connect it to this project for all environments. It injects `DATABASE_URL` (pooled).
+2. Import the repo into Vercel (or `vercel --prod`). The included `vercel.json` routes everything to `api/index.py` and runs migrations at build (`python scripts/migrate.py`); `.python-version` pins Python 3.12.
+3. Add the remaining env vars from `.env.example` in Project → Settings → Environment Variables (`SECRET_KEY`, `APP_URL=https://your-app.vercel.app`, Discord, Power Automate…). Set `SECURE_COOKIES=true`.
+4. Deploy, then open `https://your-app.vercel.app/setup` to run the setup wizard.
+5. Update the Discord OAuth redirect to `https://your-app.vercel.app/login/discord/callback`.
+
+Limitations on Vercel: attachments default off (`ATTACHMENTS_ENABLED=false`) since only `/tmp` is writable and it is ephemeral — use external object storage if you need uploads; 4.5 MB max request/response body; serverless functions have a 30 s timeout (`maxDuration`).
+
+Backups on Postgres: `pg_dump "$DATABASE_URL" > backup.sql` (instead of `scripts/backup.sh`, which is SQLite-only).
+
 ## Tests
 
 ```sh

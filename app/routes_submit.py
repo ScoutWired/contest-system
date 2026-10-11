@@ -55,6 +55,8 @@ async def submit_create(request: Request, db: DBSession = Depends(get_db)):
     att_path, att_name = "", ""
     upload = form.get("attachment")
     if upload is not None and hasattr(upload, "filename") and upload.filename:
+        if not settings.ATTACHMENTS_ENABLED:
+            return templates.TemplateResponse(request, "submit.html", ctx(request, db, error="File attachments are disabled on this deployment.", form=fdict, max_mb=settings.MAX_UPLOAD_MB, site_name=site_name(db)), status_code=400)
         ext = os.path.splitext(upload.filename)[1].lower()
         if ext not in ALLOWED:
             return templates.TemplateResponse(request, "submit.html", ctx(request, db, error=f"File type not allowed: {ext}", form=fdict, max_mb=settings.MAX_UPLOAD_MB, site_name=site_name(db)), status_code=400)

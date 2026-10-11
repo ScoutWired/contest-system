@@ -23,6 +23,7 @@ def ctx(request: Request, db: DBSession, **kw):
     _sc = db.get(_AS, "setup_complete")
     return {"request": request, "user": user, "sess": sess,
             "setup_incomplete": not (_sc and _sc.value == "1"),
+            "attachments_enabled": __import__("app.config", fromlist=["settings"]).settings.ATTACHMENTS_ENABLED,
             "is_admin": bool(user and P.is_admin(db, user)),
             "csrf_token": sess.csrf_token if sess else "", **kw}
 

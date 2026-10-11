@@ -10,8 +10,10 @@ from app.models import AppSetting
 
 app = FastAPI(title="ScoutWired Portal")
 
-os.makedirs("./data", exist_ok=True)
-Base.metadata.create_all(bind=engine)
+from app.config import ON_VERCEL as _ON_VERCEL
+if not _ON_VERCEL:
+    os.makedirs("./data", exist_ok=True)
+    Base.metadata.create_all(bind=engine)
 db = SessionLocal()
 try:
     seed_role_configs(db)
