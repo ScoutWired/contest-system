@@ -19,7 +19,10 @@ def ctx(request: Request, db: DBSession, **kw):
     raw = request.cookies.get(COOKIE)
     user, sess = get_current_user(db, raw)
     # refresh discord roles opportunistically (once per hour) for sensitive checks
+    from app.models import AppSetting as _AS
+    _sc = db.get(_AS, "setup_complete")
     return {"request": request, "user": user, "sess": sess,
+            "setup_incomplete": not (_sc and _sc.value == "1"),
             "is_admin": bool(user and P.is_admin(db, user)),
             "csrf_token": sess.csrf_token if sess else "", **kw}
 

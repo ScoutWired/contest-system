@@ -23,7 +23,11 @@ docker compose logs -f portal
 Migrations run automatically at container startup (`scripts/migrate.py`).
 Data persists in the `portal-data` volume (`/srv/app/data`).
 
-## Bootstrap first admin
+## Setup wizard (recommended)
+
+Open `/setup` on a fresh install: 8 guided steps (welcome → site → Discord login → Discord server → roles → first admin → notifications → finish) with official links, exact redirect URIs, live bot/role listing, live webhook tests, and copy-paste `.env` snippets. Secrets are tested transiently and never stored in the DB. Anonymous access locks after Finish; admins can re-run via Admin → Setup wizard.
+
+## Bootstrap first admin (alternative to wizard step 6)
 
 Option A (recommended): set `BOOTSTRAP_TOKEN` + have the admin log in via Discord once, then:
 

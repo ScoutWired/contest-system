@@ -1,4 +1,5 @@
 {% extends "base.html" %}{% block content %}
 <h1>Administration</h1>
-<nav class="admin"><a href="/admin">Overview</a><a href="/admin/submissions">Submissions</a><a href="/admin/polls">Polls</a><a href="/admin/guests">Guests</a><a href="/admin/roles">Roles</a><a href="/admin/integrations">Integrations</a><a href="/admin/settings">Settings</a><a href="/admin/audit">Audit</a></nav>
+{% if setup_incomplete %}<div class="error" role="alert">Initial setup is not finished. <a href="/setup">Open the setup wizard</a>.</div>{% endif %}
+<nav class="admin"><a href="/admin">Overview</a><a href="/admin/submissions">Submissions</a><a href="/admin/polls">Polls</a><a href="/admin/guests">Guests</a><a href="/admin/roles">Roles</a><a href="/admin/integrations">Integrations</a><a href="/admin/settings">Settings</a><a href="/admin/audit">Audit</a><a href="/setup">Setup wizard</a></nav>
 {% block admin %}{% endblock %}{% endblock %}

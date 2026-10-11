@@ -28,12 +28,14 @@ from app.routes_auth import router as auth_router
 from app.routes_submit import router as submit_router
 from app.routes_polls import router as polls_router
 from app.routes_admin import router as admin_router
+from app.routes_setup import router as setup_router
 
 app.include_router(public_router)
 app.include_router(auth_router)
 app.include_router(submit_router)
 app.include_router(polls_router)
 app.include_router(admin_router)
+app.include_router(setup_router)
 
 @app.middleware("http")
 async def security_headers(request: Request, call_next):

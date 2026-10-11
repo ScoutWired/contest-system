@@ -1,0 +1,97 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><h1>Setup wizard {% if complete %}<small>(re-run as admin)</small>{% else %}<small>— fresh install</small>{% endif %}</h1>
+<ol style="display:flex;gap:.4rem;flex-wrap:wrap;list-style:none;padding:0">
+{% for s in steps %}<li><span class="badge {% if s==step %}open{% endif %}">{{ labels[s] }}</span></li>{% endfor %}</ol></div>
+
+{% if step == "welcome" %}
+<div class="card"><h2>What you need</h2>
+<ol>
+<li><strong>Discord application</strong> — create one at <a href="{{ links.dev_portal }}">discord.com/developers/applications</a>. Copy the <em>Application ID</em> (client ID) and <em>Client Secret</em> (OAuth2 tab). Docs: <a href="{{ links.oauth2_docs }}">OAuth2</a>.</li>
+<li><strong>Bot + server</strong> — in the same app: Bot tab → create bot, copy token (keep secret), enable <strong>Server Members Intent</strong> (Privileged Gateway Intents; <a href="{{ links.intents_docs }}">intents docs</a>), invite the bot to your server (OAuth2 → URL Generator → scope <code>bot</code>). <a href="{{ links.bot_guide }}">Bot quick-start</a>.</li>
+<li><strong>IDs</strong> — in Discord enable <em>Settings → Advanced → Developer Mode</em>, then right-click your server → <em>Copy Server ID</em>, right-click each role → <em>Copy ID</em>. (<a href="{{ links.find_ids }}">official guide to finding IDs</a>)</li>
+<li><strong>Power Automate (optional)</strong> — at <a href="{{ links.pa_portal }}">make.powerautomate.com</a> create a flow with trigger <em>When an HTTP request is received</em>, copy its HTTP URL. <a href="{{ links.pa_http_auth }}">Trigger authentication docs</a>.</li>
+</ol>
+<p>Secrets stay on your server: this wizard only tests them live and shows copy-paste <code>.env</code> lines — they are never saved to the database or logs.</p>
+<p><a class="btn primary" href="/setup?step=site">Start setup</a></p></div>
+
+{% elif step == "site" %}
+<div class="card"><h2>Site settings</h2>
+<form method="post" action="/setup/site"><input type="hidden" name="wtoken" value="{{ wtoken }}">
+<label for="site_name">Site name</label><input id="site_name" name="site_name" value="{{ site_name_v }}" required maxlength="120">
+<label for="app_url">Canonical app URL (public address, no trailing slash)</label><input id="app_url" name="app_url" value="{{ app_url_v }}" required placeholder="https://portal.example.com">
+<label for="timezone">Time zone</label><input id="timezone" name="timezone" value="{{ timezone_v }}">
+<button class="btn primary" type="submit">Save &amp; continue</button></form></div>
+
+{% elif step == "discord_oauth" %}
+<div class="card"><h2>Discord login (OAuth2)</h2>
+<ol><li>Open <a href="{{ links.dev_portal }}">the developer portal</a> → your application → <strong>OAuth2</strong>.</li>
+<li>Under <strong>Redirects</strong> add exactly:<br><code>{{ redirect_uri }}</code> <button data-copy="{{ redirect_uri }}">Copy</button></li>
+<li>Copy the <strong>Client ID</strong> below and the <strong>Client Secret</strong> (Reset Secret if needed). Minimum scope used by the app: <code>identify</code> (<a href="{{ links.oauth2_docs }}">docs</a>).</li></ol>
+<p>Current status: {{ 'client ID configured' if oauth_ok else 'NOT configured yet' }}.</p>
+<form method="post" action="/setup/discord_oauth"><input type="hidden" name="wtoken" value="{{ wtoken }}">
+<label for="client_id">Application (client) ID</label><input id="client_id" name="client_id" inputmode="numeric" placeholder="123456789012345678">
+<label for="client_secret">Client secret (used only to build your .env snippet, never stored)</label><input id="client_secret" name="client_secret" type="password" autocomplete="off">
+<button class="btn primary" type="submit">Validate &amp; continue</button></form>
+{% if secret_hint %}<p><small>Tip: paste the secret too and the snippet will include its line.</small></p>{% endif %}</div>
+
+{% elif step == "discord_server" %}
+<div class="card"><h2>Discord server &amp; bot</h2>
+<ol><li>Bot tab → copy the <strong>token</strong>; enable <strong>Server Members Intent</strong> (<a href="{{ links.intents_docs }}">why</a>).</li>
+<li>Invite the bot: OAuth2 → URL Generator → <code>bot</code> scope → open the URL.</li>
+<li>Paste the token + your server ID below and hit <strong>Test</strong> — the wizard lists the server's roles with copyable IDs for the next step.</li></ol>
+<form method="post" action="/setup/discord_server"><input type="hidden" name="wtoken" value="{{ wtoken }}">
+<label for="guild_id">Server (guild) ID</label><input id="guild_id" name="guild_id" value="{{ guild_v }}" inputmode="numeric">
+<label for="bot_token">Bot token (tested live once, never stored)</label><input id="bot_token" name="bot_token" type="password" autocomplete="off">
+<button class="btn primary" type="submit">Save &amp; test</button></form>
+{% if guild_roles %}<h3>Roles in this server</h3>
+<table><tr><th>Role</th><th>ID</th><th></th></tr>
+{% for r in guild_roles %}<tr><td>{{ r.name }}</td><td><code>{{ r.id }}</code></td><td><button data-copy="{{ r.id }}">Copy</button></td></tr>{% endfor %}</table>{% endif %}</div>
+
+{% elif step == "roles" %}
+<div class="card"><h2>Roles &amp; permissions</h2>
+<p>Paste comma-separated numeric role IDs per category. Changes apply immediately — no rebuild. Permission checks fail closed when Discord is unreachable.</p>
+<form method="post" action="/setup/roles"><input type="hidden" name="wtoken" value="{{ wtoken }}">
+{% for c in configs %}<label>{{ c.label }} <small>({{ c.category }})</small><input name="roles_{{ c.category }}" value="{{ c.role_ids }}" placeholder="e.g. 111…,222…"></label>{% endfor %}
+<button class="btn primary" type="submit">Save &amp; continue</button></form></div>
+
+{% elif step == "first_admin" %}
+<div class="card"><h2>First administrator</h2>
+<p>Enter <strong>your</strong> Discord user ID (Developer Mode → right-click your profile → Copy User ID). You will sign in via Discord afterwards; until roles grant admin, this flag (or <code>BOOTSTRAP_DISCORD_ID</code>) makes you admin. Remove it once role-based admins work.</p>
+<form method="post" action="/setup/first_admin"><input type="hidden" name="wtoken" value="{{ wtoken }}">
+<label for="discord_id">Your Discord user ID</label><input id="discord_id" name="discord_id" inputmode="numeric">
+<label for="bootstrap_token">Bootstrap token (only required on fresh installs where the server sets BOOTSTRAP_TOKEN)</label><input id="bootstrap_token" name="bootstrap_token" type="password" autocomplete="off">
+<button class="btn primary" type="submit">Register admin</button></form></div>
+
+{% elif step == "notifications" %}
+<div class="card"><h2>Notifications (optional)</h2>
+<h3>Power Automate</h3>
+<ol><li>At <a href="{{ links.pa_portal }}">make.powerautomate.com</a> → Create → Automated cloud flow → trigger <em>When an HTTP request is received</em> → add a Parse/Compose action → Save → copy the <strong>HTTP URL</strong>.</li>
+<li>Paste it below; the wizard sends a <code>setup_test</code> event. Auth: the app signs every delivery (<code>X-SW-Signature</code> HMAC-SHA256, secret from your <code>.env</code>). <a href="{{ links.pa_http_auth }}">Trigger auth docs</a>.</li></ol>
+<h3>Discord webhooks</h3>
+<p>Per channel: Edit Channel → Integrations → Webhooks → New Webhook → Copy URL. Use separate channels for moderation, public announcements, and security alerts.</p>
+<form method="post" action="/setup/notifications"><input type="hidden" name="wtoken" value="{{ wtoken }}">
+<label for="pa_url">Power Automate HTTP trigger URL</label><input id="pa_url" name="pa_url" placeholder="https://…">
+<label for="wh_mod">Moderation webhook URL</label><input id="wh_mod" name="wh_mod" type="password" autocomplete="off">
+<label for="wh_public">Public announcements webhook URL</label><input id="wh_public" name="wh_public" type="password" autocomplete="off">
+<label for="wh_security">Security alerts webhook URL</label><input id="wh_security" name="wh_security" type="password" autocomplete="off">
+<button class="btn primary" type="submit">Test &amp; continue</button>
+<button class="btn" formaction="/setup/notifications" formnovalidate type="submit" onclick="document.getElementById('pa_url').value='';">Skip</button></form>
+<p><small>Status — Power Automate: {{ 'configured' if pa_ok else 'not set' }}; webhooks: mod {{ '✓' if webhooks_ok.mod else '–' }} public {{ '✓' if webhooks_ok.public else '–' }} security {{ '✓' if webhooks_ok.security else '–' }}.</small></p></div>
+
+{% elif step == "finish" %}
+<div class="card"><h2>Review &amp; finish</h2>
+<table><tr><th>Item</th><th>Status</th></tr>
+{% for name, st in summary %}<tr><td>{{ name }}</td><td>{{ st }}</td></tr>{% endfor %}</table>
+<p>Secrets live in your server environment (<code>.env</code>), never in the database. After finishing, this wizard locks and only admins can re-run it.</p>
+<form method="post" action="/setup/finish"><input type="hidden" name="wtoken" value="{{ wtoken }}">
+<button class="btn primary" data-confirm="Finish setup and lock the wizard?" type="submit">Finish setup</button></form></div>
+{% endif %}
+
+{% if env_snippet %}<div class="card"><h3>Add to your server <code>.env</code>, then restart</h3>
+<pre>{{ env_snippet }}</pre><button data-copy="{{ env_snippet }}">Copy</button>
+{% if next_step %}<p><a class="btn primary" href="/setup?step={{ next_step }}">Continue → {{ labels[next_step] }}</a></p>{% endif %}</div>
+{% elif next_step and step not in ["welcome","finish"] and not error %}
+<div class="card"><a class="btn" href="/setup?step={{ next_step }}">Continue → {{ labels[next_step] }}</a>
+<a class="btn" href="/setup?step=finish">Skip to finish</a></div>
+{% endif %}
+{% endblock %}
