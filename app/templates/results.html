@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><h1>Results: {{ poll.title }}</h1>
+{% if visible %}
+<table><tr><th>Option</th><th>Votes</th></tr>
+{% for o in results.options %}<tr><td>{{ o.text }}{% if o.abstain %} (abstain){% endif %}</td><td>{{ o.votes }}</td></tr>{% endfor %}</table>
+<p>Abstentions: {{ results.abstentions }} | Total votes: {{ results.total }}</p>
+<p><strong>Outcome: {{ results.outcome }}</strong></p>
+{% else %}<p>Results are hidden until the poll closes.</p>{% endif %}</div>
+{% endblock %}

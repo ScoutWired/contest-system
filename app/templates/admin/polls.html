@@ -1,0 +1,6 @@
+{% extends "admin/base.html" %}{% block admin %}
+<div class="card"><h2>Polls</h2><p><a class="btn primary small" href="/admin/polls/new">New poll</a></p>
+<table><tr><th>Title</th><th>Status</th><th>Eligibility</th><th></th></tr>
+{% for p in polls %}<tr><td>{{ p.title }}</td><td>{{ p.status }}</td><td>{{ p.eligibility }}</td>
+<td><a href="/admin/polls/{{ p.id }}">Manage</a> | <a href="/results/{{ p.id }}">Results</a></td></tr>{% endfor %}</table></div>
+{% endblock %}

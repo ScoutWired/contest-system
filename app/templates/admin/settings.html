@@ -1,0 +1,6 @@
+{% extends "admin/base.html" %}{% block admin %}
+<div class="card"><h2>System settings</h2>
+<form method="post" action="/admin/settings"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+{% for k,v in settings_items %}<label>{{ k }}<input name="{{ k }}" value="{{ v }}"></label>{% endfor %}
+<button class="btn primary" type="submit">Save</button></form></div>
+{% endblock %}

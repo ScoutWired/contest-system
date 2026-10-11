@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><h1>Published proposals</h1>
+<form method="get" action="/" style="display:flex;gap:.5rem;flex-wrap:wrap">
+<label class="sr" for="q">Search</label><input id="q" name="q" placeholder="Search published proposals" value="{{ q|default('') }}" style="max-width:260px">
+<select name="category" style="max-width:180px"><option value="">All categories</option>
+{% for c in categories %}<option value="{{ c }}" {% if c==category %}selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+<button class="btn small" type="submit">Filter</button></form></div>
+{% for s in submissions %}<div class="card"><h3><a href="/submissions/{{ s.id }}">{{ s.title }}</a></h3>
+<p><span class="badge">{{ s.category }}</span> <span class="badge">PUBLISHED</span></p><p>{{ s.summary }}</p></div>
+{% else %}<div class="card"><p>No published proposals yet.</p></div>{% endfor %}
+{% if pages>1 %}<p>Page {{ page }} of {{ pages }}</p>{% endif %}
+{% endblock %}

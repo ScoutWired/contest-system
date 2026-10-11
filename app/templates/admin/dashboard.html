@@ -1,0 +1,10 @@
+{% extends "admin/base.html" %}{% block admin %}
+<div class="grid">
+<div class="card"><h3>Pending submissions</h3><p>{{ stats.pending }}</p></div>
+<div class="card"><h3>Approved, unpublished</h3><p>{{ stats.approved }}</p></div>
+<div class="card"><h3>Open polls</h3><p>{{ stats.open_polls }}</p></div>
+<div class="card"><h3>Active guests</h3><p>{{ stats.guests }}</p></div>
+<div class="card"><h3>Failed deliveries</h3><p>{{ stats.failed }}</p></div></div>
+<div class="card"><h3>Recent events</h3><table><tr><th>When</th><th>Actor</th><th>Action</th><th>Target</th></tr>
+{% for e in recent %}<tr><td>{{ e.created_at }}</td><td>{{ e.actor_id[:8] }}</td><td>{{ e.action }}</td><td>{{ e.target }}</td></tr>{% endfor %}</table></div>
+{% endblock %}

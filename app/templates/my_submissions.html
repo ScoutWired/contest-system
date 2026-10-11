@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><h1>My submissions</h1>
+<table><tr><th>Title</th><th>Status</th><th>Updated</th></tr>
+{% for s in subs %}<tr><td>{{ s.title }}</td><td><span class="badge">{{ s.status }}</span></td><td>{{ s.updated_at }}</td></tr>{% endfor %}</table></div>
+{% endblock %}

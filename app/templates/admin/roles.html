@@ -1,0 +1,11 @@
+{% extends "admin/base.html" %}{% block admin %}
+<div class="card"><h2>Role & permissions</h2><p>{{ msg|default('') }}</p>
+<p>Guild ID: <code>{{ guild }}</code></p>
+<form method="post" action="/admin/roles"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<label>Guild ID<input name="guild_id" value="{{ guild }}"></label>
+{% for c in configs %}<label>{{ c.label }} ({{ c.category }})<input name="roles_{{ c.category }}" value="{{ c.role_ids }}" placeholder="comma-separated role IDs"></label>
+<label><input type="checkbox" name="enabled_{{ c.category }}" value="1" {% if c.enabled %}checked{% endif %}> Enabled</label>{% endfor %}
+<button class="btn primary" type="submit">Save roles</button></form>
+<form method="post" action="/admin/roles/test"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<button class="btn small" type="submit">Test guild connectivity</button> {{ test_result|default('') }}</form></div>
+{% endblock %}

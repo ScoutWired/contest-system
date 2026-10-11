@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><h1>{{ s.title }}</h1>
+<p><span class="badge">{{ s.category }}</span> <span class="badge">{{ s.status }}</span></p>
+<p>{{ s.summary }}</p><div>{{ s.description }}</div>
+{% if s.links %}<h3>Links</h3><ul>{% for l in links %}<li><a href="{{ l }}" rel="noopener">{{ l }}</a></li>{% endfor %}</ul>{% endif %}
+{% if s.attachment_name %}<p>Attachment: <a href="/submissions/{{ s.id }}/attachment">{{ s.attachment_name }}</a></p>{% endif %}
+<p><small>Submitted {{ s.created_at }}</small></p></div>
+{% endblock %}

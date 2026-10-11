@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><h1>{{ poll.title }}</h1><p>{{ poll.description }}</p>
+<p><span class="badge">{{ poll.status }}</span> {% if poll.closes_at %}<small>Closes {{ poll.closes_at }}</small>{% endif %}</p>
+{% if can_vote %}<form method="post" action="/polls/{{ poll.id }}/vote" onsubmit="return confirm('Submit your vote?')">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+{% for o in options %}<p><label><input type="radio" name="option_id" value="{{ o.id }}" required> {{ o.text }}</label></p>{% endfor %}
+<button class="btn primary" type="submit">Vote</button></form>
+{% if my_vote %}<p><small>Your current vote: {{ my_vote_text }}{% if poll.allow_change %} (you may change it){% endif %}</small></p>{% endif %}
+{% else %}<p>{{ vote_note }}</p>{% endif %}
+<p><a href="/results/{{ poll.id }}">View results</a></p></div>
+{% endblock %}

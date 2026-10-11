@@ -1,0 +1,10 @@
+{% extends "admin/base.html" %}{% block admin %}
+<div class="card"><h2>Integrations</h2>
+<p>Discord OAuth: {{ 'configured' if oauth_ok else 'NOT configured' }} | Bot: {{ 'configured' if bot_ok else 'NOT configured' }} | Power Automate: {{ 'configured' if pa_ok else 'NOT configured' }}</p>
+<p>Configure via environment variables (never shown here). Use retry to redeliver.</p>
+<form method="post" action="/admin/integrations/retry"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<button class="btn small" type="submit">Retry pending deliveries</button></form></div>
+<div class="card"><h3>Delivery log (latest)</h3>
+<table><tr><th>Event</th><th>Type</th><th>Target</th><th>Status</th><th>Tries</th><th>Error</th></tr>
+{% for d in deliveries %}<tr><td>{{ d.event_id[:8] }}</td><td>{{ d.event_type }}</td><td>{{ d.target }}</td><td>{{ d.status }}</td><td>{{ d.tries }}</td><td>{{ d.last_error[:80] }}</td></tr>{% endfor %}</table></div>
+{% endblock %}

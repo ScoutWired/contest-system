@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %}{% block admin %}
+<div class="card"><h2>Guest accounts</h2>
+<form method="post" action="/admin/guests/new"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<label>Note<input name="note" maxlength="200"></label><button class="btn primary small" type="submit">Generate guest</button></form>
+{% if new_cred %}<div class="ok"><p><strong>Copy now — shown once:</strong></p>
+<p>Username: <code>{{ new_cred.username }}</code> <button data-copy="{{ new_cred.username }}">Copy</button></p>
+<p>Code: <code>{{ new_cred.code }}</code> <button data-copy="{{ new_cred.code }}">Copy</button></p></div>{% endif %}
+<table><tr><th>Username</th><th>Active</th><th>Last login</th><th>Expires</th><th>Note</th><th></th></tr>
+{% for g in guests %}<tr><td>{{ g.username }}</td><td>{{ 'yes' if g.active else 'REVOKED' }}</td><td>{{ g.last_login or '-' }}</td><td>{{ g.expires_at or '-' }}</td><td>{{ g.note }}</td>
+<td><form method="post" action="/admin/guests/{{ g.id }}/action" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<button class="btn small" name="op" value="revoke" data-confirm="Revoke this guest?" type="submit">Revoke</button>
+<button class="btn small" name="op" value="regenerate" data-confirm="Regenerate code? Old code stops working." type="submit">Regenerate</button>
+<button class="btn small" name="op" value="activate" type="submit">Activate</button></form></td></tr>{% endfor %}</table></div>
+{% endblock %}

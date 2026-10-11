@@ -1,0 +1,30 @@
+{% extends "admin/base.html" %}{% block admin %}
+<div class="card"><h2>{% if poll %}Manage poll{% else %}New poll{% endif %}</h2>
+<form method="post" action="{% if poll %}/admin/polls/{{ poll.id }}/edit{% else %}/admin/polls/new{% endif %}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<label>Title<input name="title" value="{{ poll.title if poll else '' }}" required maxlength="200"></label>
+<label>Description<textarea name="description" rows="4">{{ poll.description if poll else '' }}</textarea></label>
+<label>Linked submission (approved id, optional)<input name="submission_id" value="{{ poll.submission_id if poll and poll.submission_id else '' }}"></label>
+<label>Eligibility<select name="eligibility">
+{% for e in ['discord','guests','both'] %}<option {% if poll and poll.eligibility==e %}selected{% endif %}>{{ e }}</option>{% endfor %}</select></label>
+<label>Options (one per line)<textarea name="options" rows="4">{{ options_text|default('') }}</textarea></label>
+<label><input type="checkbox" name="allow_change" value="1" {% if poll and poll.allow_change %}checked{% endif %}> Allow vote changes</label>
+<label><input type="checkbox" name="allow_abstain" value="1" {% if not poll or poll.allow_abstain %}checked{% endif %}> Include Abstain option</label>
+<label><input type="checkbox" name="hide_until_close" value="1" {% if not poll or poll.hide_until_close %}checked{% endif %}> Hide results until close</label>
+<label>Opens at (ISO, optional)<input name="opens_at" value="{{ poll.opens_at if poll and poll.opens_at else '' }}"></label>
+<label>Closes at (ISO, optional)<input name="closes_at" value="{{ poll.closes_at if poll and poll.closes_at else '' }}"></label>
+<button class="btn primary" type="submit">Save</button></form>
+{% if poll %}<hr>
+<form method="post" action="/admin/polls/{{ poll.id }}/lifecycle" style="display:flex;gap:.5rem;flex-wrap:wrap">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<button class="btn small" name="op" value="open" type="submit">Open</button>
+<button class="btn small" name="op" value="close" data-confirm="Close poll and finalise results?" type="submit">Close</button>
+<button class="btn small" name="op" value="reopen" data-confirm="Reopen closed poll? This is audited." type="submit">Reopen</button>
+<button class="btn small" name="op" value="archive" type="submit">Archive</button>
+<a class="btn small" href="/admin/polls/{{ poll.id }}/export">Export CSV</a></form>
+{% if guest_restrict is not none %}<h3>Restricted guest list (optional; empty = all active guests)</h3>
+<form method="post" action="/admin/polls/{{ poll.id }}/guests"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<textarea name="usernames" rows="3" placeholder="Guest-XXXXXX one per line">{{ guest_restrict }}</textarea>
+<button class="btn small" type="submit">Save guest list</button></form>{% endif %}
+{% endif %}</div>
+{% endblock %}

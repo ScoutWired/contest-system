@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><h1>New proposal</h1>
+<form method="post" action="/submit" enctype="multipart/form-data">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<label for="title">Title</label><input id="title" name="title" maxlength="200" required value="{{ form.title|default('') }}">
+<label for="category">Category</label><input id="category" name="category" maxlength="80" value="{{ form.category|default('General') }}">
+<label for="summary">Summary (max 600)</label><input id="summary" name="summary" maxlength="600" value="{{ form.summary|default('') }}">
+<label for="description">Full description</label><textarea id="description" name="description" rows="8" required>{{ form.description|default('') }}</textarea>
+<label for="links">Supporting links (one per line)</label><textarea id="links" name="links" rows="3">{{ form.links|default('') }}</textarea>
+<label for="proposed_options">Proposed voting options (one per line, optional)</label><textarea id="proposed_options" name="proposed_options" rows="3">{{ form.proposed_options|default('') }}</textarea>
+<label for="attachment">Attachment (optional: pdf/png/jpg/txt/md/csv, max {{ max_mb }}MB)</label><input id="attachment" name="attachment" type="file">
+<button class="btn primary" type="submit">Submit for review</button></form></div>
+{% endblock %}

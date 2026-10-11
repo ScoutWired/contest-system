@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><h1>Polls</h1></div>
+{% for p in polls %}<div class="card"><h3><a href="/polls/{{ p.id }}">{{ p.title }}</a></h3>
+<p><span class="badge {% if p.status=='OPEN' %}open{% else %}closed{% endif %}">{{ p.status }}</span></p><p>{{ p.description[:200] }}</p></div>
+{% else %}<div class="card"><p>No polls available.</p></div>{% endfor %}
+{% endblock %}

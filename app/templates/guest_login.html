@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><h1>Guest login</h1>
+<form method="post" action="/login/guest">
+<label for="username">Username</label><input id="username" name="username" autocomplete="username" required>
+<label for="code">Access code</label><input id="code" name="code" type="password" autocomplete="current-password" required>
+<button class="btn primary" type="submit">Login</button></form></div>
+{% endblock %}

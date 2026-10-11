@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ title|default(site_name|default('ScoutWired Portal')) }}</title><link rel="stylesheet" href="/static/style.css"></head>
+<body><header><strong><a href="/">ScoutWired</a></strong>
+<a href="/polls">Polls</a><a href="/submit">Submit</a><a href="/help">Help</a>
+<span style="flex:1"></span>
+{% if user %}<a href="/account">{{ user.display_name }}</a>{% if is_admin %}<a href="/admin">Admin</a>{% endif %}<a href="/logout">Logout</a>
+{% else %}<a href="/login">Login</a>{% endif %}</header>
+<main>{% if flash %}<div class="ok" role="status">{{ flash }}</div>{% endif %}
+{% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
+{% block content %}{% endblock %}</main>
+<script src="/static/app.js"></script></body></html>

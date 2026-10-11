@@ -1,0 +1,10 @@
+{% extends "admin/base.html" %}{% block admin %}
+<div class="card"><h2>Moderation queue</h2>
+<form method="get"><input name="q" value="{{ q|default('') }}" placeholder="Search" style="max-width:220px;display:inline">
+<select name="status" style="max-width:180px;display:inline"><option value="">All statuses</option>
+{% for st in statuses %}<option {% if st==status %}selected{% endif %}>{{ st }}</option>{% endfor %}</select>
+<button class="btn small" type="submit">Filter</button></form>
+<table><tr><th>ID</th><th>Title</th><th>Status</th><th>Submitter</th><th></th></tr>
+{% for s in subs %}<tr><td>{{ s.id }}</td><td>{{ s.title }}</td><td>{{ s.status }}</td><td>{{ s.submitter_id[:8] }}</td>
+<td><a href="/admin/submissions/{{ s.id }}">Review</a></td></tr>{% endfor %}</table></div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}{% block admin %}
+<div class="card"><h2>{{ s.title }}</h2><p>{{ s.summary }}</p><div>{{ s.description }}</div>
+<p>Status: <strong>{{ s.status }}</strong></p>
+{% if s.attachment_name %}<p>Attachment: <a href="/admin/submissions/{{ s.id }}/attachment">{{ s.attachment_name }}</a></p>{% endif %}
+<h3>Moderation history</h3><ul>{% for d in history %}<li>{{ d.created_at }} — {{ d.action }}: {{ d.reason }}</li>{% endfor %}</ul>
+<form method="post" action="/admin/submissions/{{ s.id }}/decision">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<label>Action<select name="action"><option value="APPROVE">Approve</option><option value="REJECT">Reject</option><option value="CHANGES">Request changes</option><option value="PUBLISH">Publish</option><option value="ARCHIVE">Archive</option></select></label>
+<label>Reason (visible to submitter)<textarea name="reason" rows="2"></textarea></label>
+<label>Internal note<textarea name="internal_note" rows="2"></textarea></label>
+<button class="btn primary" data-confirm="Confirm moderation decision?" type="submit">Apply</button></form></div>
+{% endblock %}

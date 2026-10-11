@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block content %}
+<div class="card"><h1>Account</h1><p>Name: {{ user.display_name }}</p><p>Type: {{ user.kind }}</p>
+<p><a href="/my/submissions">My submissions</a></p>
+<form method="post" action="/logout"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn" type="submit">Logout</button></form></div>
+{% endblock %}
