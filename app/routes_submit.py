@@ -93,3 +93,31 @@ def my_subs(request: Request, db: DBSession = Depends(get_db)):
         return RedirectResponse("/login", status_code=303)
     subs = db.query(Submission).filter_by(submitter_id=user.id).order_by(Submission.created_at.desc()).all()
     return templates.TemplateResponse(request, "my_submissions.html", ctx(request, db, subs=subs, site_name=site_name(db)))
+
+@router.post("/submissions/{sid}/edit")
+async def submit_edit(sid: str, request: Request, db: DBSession = Depends(get_db)):
+    user, sess = get_current_user(db, request.cookies.get(COOKIE))
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    form = await request.form()
+    if not check_csrf(sess, form.get("csrf_token")):
+        return templates.TemplateResponse(request, "error.html", ctx(request, db, code=403, message="Invalid session token.", site_name=site_name(db)), status_code=403)
+    s = db.get(Submission, sid)
+    if not s or s.submitter_id != user.id:
+        return templates.TemplateResponse(request, "error.html", ctx(request, db, code=404, message="Not found", site_name=site_name(db)), status_code=404)
+    if s.status not in ("PENDING_REVIEW", "CHANGES_REQUESTED", "APPROVED", "PUBLISHED"):
+        return templates.TemplateResponse(request, "error.html", ctx(request, db, code=400, message="This submission can no longer be edited.", site_name=site_name(db)), status_code=400)
+    title = (form.get("title") or "").strip()
+    description = (form.get("description") or "").strip()
+    if not title or len(title) > 200 or not description or len(description) > 20000:
+        return templates.TemplateResponse(request, "error.html", ctx(request, db, code=400, message="Invalid fields.", site_name=site_name(db)), status_code=400)
+    db.add(SubmissionRevision(submission_id=sid, title=s.title, summary=s.summary, description=s.description, edited_by=user.id))
+    s.title = title
+    s.summary = (form.get("summary") or "").strip()[:600]
+    s.description = description
+    if s.status in ("APPROVED", "PUBLISHED"):
+        s.status = "PENDING_REVIEW"  # material edits after approval return to review
+    s.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    audit(db, user.id, "submission_edited", sid, title[:200])
+    return RedirectResponse("/my/submissions", status_code=303)

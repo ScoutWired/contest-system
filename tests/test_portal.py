@@ -339,3 +339,47 @@ def test_29_migration_clean():
     import os
     assert os.path.exists("migrations/versions/0001_initial.py")
     assert os.path.exists("alembic.ini")
+
+# 30: backup preserves data (sqlite .backup round-trip)
+def test_30_backup_restore(tmp_path):
+    import sqlite3, shutil
+    src = "./data/test.db"
+    dst = str(tmp_path / "bak.db")
+    sc = sqlite3.connect(src)
+    sc.execute(f"VACUUM INTO '{dst}'")
+    sc.close()
+    a = sqlite3.connect(src).execute("select count(*) from users").fetchone()
+    b = sqlite3.connect(dst).execute("select count(*) from users").fetchone()
+    assert a == b and a[0] > 0
+
+def test_31_submitter_edit_returns_to_review(client, db):
+    reset_limiter()
+    set_role(db, "moderator", "9001")
+    g, u, code = make_guest(db, "t31")
+    client.post("/login/guest", data={"username": g.username, "code": code})
+    from app.auth_sessions import get_current_user
+    user, sess = get_current_user(db, client.cookies.get("sw_session"))
+    client.post("/submit", data={"csrf_token": sess.csrf_token, "title": "Edit Me", "description": "d" * 50})
+    s = db.query(Submission).filter_by(title="Edit Me").one()
+    # guest cannot publish own (moderation guard)
+    r = client.post(f"/admin/submissions/{s.id}/decision", data={"csrf_token": sess.csrf_token, "action": "PUBLISH"})
+    assert r.status_code == 403
+    client.cookies.clear()
+    mod = make_discord(db, "6002", roles="9001")
+    login_as(client, db, mod)
+    import app.routes_admin as adm
+    orig = adm.fire_and_forget
+    adm.fire_and_forget = lambda *a, **k: None
+    client.post(f"/admin/submissions/{s.id}/decision", follow_redirects=False, data={"csrf_token": csrf_of(db, mod), "action": "APPROVE"})
+    adm.fire_and_forget = orig
+    client.cookies.clear()
+    db.expire_all()
+    assert db.get(Submission, s.id).status == "APPROVED"
+    # submitter edits approved -> back to review
+    client.post("/login/guest", data={"username": g.username, "code": code})
+    user2, sess2 = get_current_user(db, client.cookies.get("sw_session"))
+    r = client.post(f"/submissions/{s.id}/edit", follow_redirects=False, data={"csrf_token": sess2.csrf_token, "title": "Edit Me v2", "description": "e" * 50})
+    assert r.status_code == 303
+    db.expire_all()
+    assert db.get(Submission, s.id).status == "PENDING_REVIEW"
+    client.cookies.clear()
